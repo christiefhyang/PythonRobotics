@@ -61,6 +61,17 @@ In the animation, cyan points are searched nodes.
 
 Its heuristic is 2D Euclid distance.
 
+Optional planner settings can be used to evaluate Weighted A* behavior and
+animation diagnostics:
+
+- ``heuristic_weight`` keeps the default behavior at ``1.0`` and makes the
+  search greedier when increased.
+- ``tie_breaker="larger_g"`` prefers nodes farther from the start when two
+  priorities are equal.
+- ``show_open_set``, ``show_closed_set``, ``show_path_progress``, and
+  ``show_cost_heatmap`` expose additional animation details. They are disabled
+  by default.
+
 Code Link
 +++++++++++++
 

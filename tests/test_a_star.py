@@ -14,27 +14,7 @@ def test_1():
 
 
 def create_test_map():
-    ox, oy = [], []
-    for i in range(-10, 60):
-        ox.append(i)
-        oy.append(-10.0)
-    for i in range(-10, 60):
-        ox.append(60.0)
-        oy.append(i)
-    for i in range(-10, 61):
-        ox.append(i)
-        oy.append(60.0)
-    for i in range(-10, 61):
-        ox.append(-10.0)
-        oy.append(i)
-    for i in range(-10, 40):
-        ox.append(20.0)
-        oy.append(i)
-    for i in range(0, 40):
-        ox.append(40.0)
-        oy.append(60.0 - i)
-
-    return ox, oy
+    return m.create_demo_obstacle_map()
 
 
 def plan_path(**planner_options):
@@ -101,6 +81,13 @@ def test_visualization_options_keep_planning_usable():
     assert planner.show_closed_set
     assert planner.show_path_progress
     assert planner.show_cost_heatmap
+
+
+def test_create_demo_obstacle_map():
+    ox, oy = m.create_demo_obstacle_map()
+
+    assert len(ox) == len(oy)
+    assert len(ox) > 0
 
 
 if __name__ == '__main__':
