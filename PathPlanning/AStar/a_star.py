@@ -21,7 +21,8 @@ TIE_BREAKER_OPTIONS = (None, "larger_g")
 class AStarPlanner:
 
     def __init__(self, ox, oy, resolution, rr, heuristic_weight=1.0,
-                 tie_breaker=None):
+                 tie_breaker=None, show_open_set=False, show_closed_set=False,
+                 show_path_progress=False, show_cost_heatmap=False):
         """
         Initialize grid map for a star planning
 
@@ -34,6 +35,10 @@ class AStarPlanner:
         tie_breaker: optional tie-break strategy. None keeps the default
             behavior, and "larger_g" prefers nodes farther from the start when
             priorities are equal.
+        show_open_set: draw frontier nodes while animation is enabled.
+        show_closed_set: draw explored nodes while animation is enabled.
+        show_path_progress: draw the current parent chain during search.
+        show_cost_heatmap: draw explored-node costs after planning.
         """
 
         if heuristic_weight <= 0.0:
@@ -46,6 +51,10 @@ class AStarPlanner:
         self.rr = rr
         self.heuristic_weight = heuristic_weight
         self.tie_breaker = tie_breaker
+        self.show_open_set = show_open_set
+        self.show_closed_set = show_closed_set
+        self.show_path_progress = show_path_progress
+        self.show_cost_heatmap = show_cost_heatmap
         self.last_expanded_node_count = 0
         self.min_x, self.min_y = 0, 0
         self.max_x, self.max_y = 0, 0
@@ -101,8 +110,7 @@ class AStarPlanner:
 
             # show graph
             if show_animation:  # pragma: no cover
-                plt.plot(self.calc_grid_position(current.x, self.min_x),
-                         self.calc_grid_position(current.y, self.min_y), "xc")
+                self.draw_search_state(current, open_set, closed_set)
                 # for stopping simulation with the esc key.
                 plt.gcf().canvas.mpl_connect('key_release_event',
                                              lambda event: [exit(
@@ -145,6 +153,54 @@ class AStarPlanner:
                         open_set[n_id] = node
 
         rx, ry = self.calc_final_path(goal_node, closed_set)
+
+        if show_animation and self.show_cost_heatmap:  # pragma: no cover
+            self.draw_cost_heatmap(closed_set)
+
+        return rx, ry
+
+    def draw_search_state(self, current, open_set, closed_set):
+        current_x = self.calc_grid_position(current.x, self.min_x)
+        current_y = self.calc_grid_position(current.y, self.min_y)
+        plt.plot(current_x, current_y, "xc")
+
+        if self.show_open_set:
+            for node in open_set.values():
+                plt.plot(self.calc_grid_position(node.x, self.min_x),
+                         self.calc_grid_position(node.y, self.min_y), ".g",
+                         markersize=2)
+
+        if self.show_closed_set:
+            for node in closed_set.values():
+                plt.plot(self.calc_grid_position(node.x, self.min_x),
+                         self.calc_grid_position(node.y, self.min_y), ".c",
+                         markersize=2)
+
+        if self.show_path_progress:
+            rx, ry = self.calc_current_path(current, closed_set)
+            plt.plot(rx, ry, "-m", linewidth=1)
+
+    def draw_cost_heatmap(self, closed_set):
+        if not closed_set:
+            return
+
+        xs = [self.calc_grid_position(node.x, self.min_x)
+              for node in closed_set.values()]
+        ys = [self.calc_grid_position(node.y, self.min_y)
+              for node in closed_set.values()]
+        costs = [node.cost for node in closed_set.values()]
+        plt.scatter(xs, ys, c=costs, cmap="viridis", s=10, alpha=0.5)
+        plt.colorbar(label="A* node cost")
+
+    def calc_current_path(self, current, closed_set):
+        rx = [self.calc_grid_position(current.x, self.min_x)]
+        ry = [self.calc_grid_position(current.y, self.min_y)]
+        parent_index = current.parent_index
+        while parent_index != -1 and parent_index in closed_set:
+            node = closed_set[parent_index]
+            rx.append(self.calc_grid_position(node.x, self.min_x))
+            ry.append(self.calc_grid_position(node.y, self.min_y))
+            parent_index = node.parent_index
 
         return rx, ry
 

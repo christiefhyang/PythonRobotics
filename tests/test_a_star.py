@@ -87,5 +87,21 @@ def test_invalid_a_star_options():
         m.AStarPlanner(ox, oy, 2.0, 1.0, tie_breaker="unknown")
 
 
+def test_visualization_options_keep_planning_usable():
+    m.show_animation = False
+
+    planner, rx, ry = plan_path(show_open_set=True,
+                                show_closed_set=True,
+                                show_path_progress=True,
+                                show_cost_heatmap=True)
+
+    assert len(rx) == len(ry)
+    assert len(rx) > 0
+    assert planner.show_open_set
+    assert planner.show_closed_set
+    assert planner.show_path_progress
+    assert planner.show_cost_heatmap
+
+
 if __name__ == '__main__':
     conftest.run_this_test(__file__)
